@@ -70,7 +70,18 @@ mkdir -p $train_dir
 mkdir -p $dev_dir
 mkdir -p $test_dir
 
-python3 local/data_split.py ${SUISIANN}/0.2.1 $output_text
+# data prep for suisiann dataset
+python3 local/data_split_suisiann.py ${SUISIANN}/0.2.1 $output_text
+
+# please manually download TAT-Vol2 to ${SUISIANN} directory
+# we're sorry we couldn't find a easy way to download the files via script
+if [ -d "${SUISIANN}/TAT-Vol2" ]; then
+    # data prep for TAT-vol2-samples
+    python3 local/data_prep_tat.py ${SUISIANN}/TAT-Vol2 $output_text
+
+    # resort the files in train
+    python3 local/sort_text_file.py $train_dir
+fi
 
 for dir in $train_dir $dev_dir $test_dir; do
   utils/utt2spk_to_spk2utt.pl $dir/utt2spk > $dir/spk2utt
@@ -79,8 +90,8 @@ done
 python3 local/check_train_test_duplicate.py
 
 # validate formats
-utils/validate_data_dir.sh --no-feats data/train
-utils/validate_data_dir.sh --no-feats data/dev
-utils/validate_data_dir.sh --no-feats data/test
+utils/validate_data_dir.sh --no-feats $train_dir
+utils/validate_data_dir.sh --no-feats $dev_dir
+utils/validate_data_dir.sh --no-feats $test_dir
 
 log "Successfully finished. [elapsed=${SECONDS}s]"

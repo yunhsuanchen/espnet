@@ -6,9 +6,11 @@ import os
 import pandas as pd
 import numpy as np
 
-train_size = 0.6
-dev_size = 0.2
+train_size = 0.9
+dev_size = 0.05
 random_state = 11737
+
+max_audio_length = 20
 
 data_dir = sys.argv[1]  # downloads/0.2.1
 output_text = sys.argv[2] # tailo or cmn
@@ -36,19 +38,27 @@ print(
 
 def create_files(df, directory):
     text_lines, scp_lines, utt2spk_lines = [], [], []
+    human_annotation_lines = []
 
     for idx, row in df.iterrows():
+        # skip audio files that are too long
+        if row["長短"] > max_audio_length:
+            continue
         wav_file_path = os.path.join(data_dir, row["音檔"])
         utt_id = row["音檔"].split("/")[-1].split(".")[0]
         # add speaker-ids prefixes of utt-ids
         utt_id = spk_id+utt_id
         transcription = row[text_column_name]
+        transcription = transcription.replace('"', '""')
+        tai_han = row["漢字"]
 
         text_lines.append(f"{utt_id} {transcription}\n")
 
         scp_lines.append(f"{utt_id} {wav_file_path}\n")
 
         utt2spk_lines.append(f"{utt_id} {spk_id}\n")
+
+        human_annotation_lines.append(f"{utt_id},{wav_file_path},\"{transcription}\",\"{tai_han}\",\n")
 
     # sort
     text_lines.sort()
@@ -64,6 +74,9 @@ def create_files(df, directory):
 
     with open(f"{directory}/utt2spk", "w+") as utt2spk_file:
         utt2spk_file.writelines(utt2spk_lines)
+    
+    with open(f"{directory}/human_annotation.csv", "w+") as f:
+        f.writelines(human_annotation_lines)
 
 
 print("Creating files for train...", end="")
