@@ -37,7 +37,7 @@ model_conf:
 
 # minibatch related
 batch_type: numel
-batch_bins: 4000000
+batch_bins: 1000000
 
 # optimization related
 accum_grad: 4
@@ -50,7 +50,7 @@ best_model_criterion:
 -   - valid
     - acc
     - max
-keep_nbest_models: 10
+keep_nbest_models: 5
 
 optim: adam
 optim_conf:
@@ -74,3 +74,11 @@ specaug_conf:
     - 0
     - 40
     num_time_mask: 2
+
+# wandb
+use_wandb: true
+wandb_project: Taiwanese-ASR
+wandb_id: null
+wandb_entity: chennoel
+wandb_name: null
+wandb_model_log_interval: -1
