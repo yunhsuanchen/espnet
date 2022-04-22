@@ -55,7 +55,7 @@ EOF
 	echo  
       elif ls "${expdir}"/*/*/score_*/result.txt &> /dev/null; then
         echo "## $(basename ${expdir})"
-        for type in wer cer ter; do
+        for type in wer cer ter ser ser_atonal; do
                 	cat << EOF
 ### ${type^^}
 

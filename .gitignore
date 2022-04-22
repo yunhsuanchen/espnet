@@ -34,7 +34,7 @@ egs*/*/*/db
 egs*/*/*/downloads
 egs*/*/*/dump
 egs*/*/*/enhan
-egs*/*/*/exp
+egs*/*/*/exp*
 egs*/*/*/fbank
 egs*/*/*/mfcc
 egs*/*/*/stft
@@ -80,3 +80,5 @@ tools/speech_tools*
 tools/phonemizer*
 tools/py3mmseg
 tools/._*
+tools/anaconda
+tools/fairseq

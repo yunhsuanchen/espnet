@@ -9,7 +9,7 @@ from espnet2.text.char_tokenizer import CharTokenizer
 from espnet2.text.phoneme_tokenizer import PhonemeTokenizer
 from espnet2.text.sentencepiece_tokenizer import SentencepiecesTokenizer
 from espnet2.text.word_tokenizer import WordTokenizer
-
+from espnet2.text.syllable_tokenizer import SyllableTokenizer
 
 def build_tokenizer(
     token_type: str,
@@ -56,8 +56,32 @@ def build_tokenizer(
             space_symbol=space_symbol,
             remove_non_linguistic_symbols=remove_non_linguistic_symbols,
         )
+    
+    elif token_type == "syl":
+        if remove_non_linguistic_symbols and non_linguistic_symbols is not None:
+            return SyllableTokenizer(
+                delimiters=[" ", "-"],
+                non_linguistic_symbols=non_linguistic_symbols,
+                remove_non_linguistic_symbols=True,
+            )
+        else:
+            return SyllableTokenizer(delimiters=[" ", "-"])
+    
+    elif token_type == "syl_atonal":
+        if remove_non_linguistic_symbols and non_linguistic_symbols is not None:
+            return SyllableTokenizer(
+                delimiters=[" ", "-"],
+                non_linguistic_symbols=non_linguistic_symbols,
+                remove_non_linguistic_symbols=True,
+                atonal=True
+            )
+        else:
+            return SyllableTokenizer(
+                delimiters=[" ", "-"],
+                atonal=True
+            )
 
     else:
         raise ValueError(
-            f"token_mode must be one of bpe, word, char or phn: " f"{token_type}"
+            f"token_mode must be one of bpe, word, char phn, syl, or syl_atonal: " f"{token_type}"
         )
