@@ -36,7 +36,7 @@ nj=32                # The number of parallel jobs.
 inference_nj=32      # The number of parallel jobs in decoding.
 gpu_inference=false  # Whether to perform gpu decoding.
 dumpdir=dump         # Directory to dump features.
-expdir=exp-suisiann-tatvol2           # Directory to save experiments.
+expdir=exp-suisiann-tatvol2-sslr           # Directory to save experiments.
 python=python3       # Specify python to execute espnet commands.
 
 # Data preparation related
@@ -69,7 +69,7 @@ ngram_exp=
 ngram_num=3
 
 # Language model related
-use_lm=true       # Use language model for ASR decoding.
+use_lm=           # Use language model for ASR decoding.
 lm_tag=           # Suffix to the result dir for language model training.
 lm_exp=           # Specify the directory path for LM experiment.
                   # If this option is specified, lm_tag is ignored.
@@ -1277,7 +1277,7 @@ if ! "${skip_eval}"; then
             _data="${data_feats}/${dset}"
             _dir="${asr_exp}/${inference_tag}/${dset}"
 
-            for _type in cer wer ter; do
+            for _type in cer wer ter ser ser_atonal; do
                 [ "${_type}" = ter ] && [ ! -f "${bpemodel}" ] && continue
 
                 _scoredir="${_dir}/score_${_type}"
@@ -1356,6 +1356,59 @@ if ! "${skip_eval}"; then
                                   -f 2- --input - --output - \
                                   --token_type bpe \
                                   --bpemodel "${bpemodel}" \
+                                  ) \
+                        <(<"${_data}/utt2spk" awk '{ print "(" $2 "-" $1 ")" }') \
+                            >"${_scoredir}/hyp.trn"
+                
+
+                elif [ "${_type}" = ser ]; then
+                    # Tokenize text to syllable level
+                    paste \
+                        <(<"${_data}/text" \
+                              ${python} -m espnet2.bin.tokenize_text  \
+                                  -f 2- --input - --output - \
+                                  --token_type syl \
+                                  --non_linguistic_symbols "${nlsyms_txt}" \
+                                  --remove_non_linguistic_symbols true \
+                                  --cleaner "${cleaner}" \
+                                  ) \
+                        <(<"${_data}/utt2spk" awk '{ print "(" $2 "-" $1 ")" }') \
+                            >"${_scoredir}/ref.trn"
+
+                    # NOTE(kamo): Don't use cleaner for hyp
+                    paste \
+                        <(<"${_dir}/text"  \
+                              ${python} -m espnet2.bin.tokenize_text  \
+                                  -f 2- --input - --output - \
+                                  --token_type syl \
+                                  --non_linguistic_symbols "${nlsyms_txt}" \
+                                  --remove_non_linguistic_symbols true \
+                                  ) \
+                        <(<"${_data}/utt2spk" awk '{ print "(" $2 "-" $1 ")" }') \
+                            >"${_scoredir}/hyp.trn"
+
+                elif [ "${_type}" = ser_atonal ]; then
+                    # Tokenize text to syllable level and remove accents
+                    paste \
+                        <(<"${_data}/text" \
+                              ${python} -m espnet2.bin.tokenize_text  \
+                                  -f 2- --input - --output - \
+                                  --token_type syl_atonal \
+                                  --non_linguistic_symbols "${nlsyms_txt}" \
+                                  --remove_non_linguistic_symbols true \
+                                  --cleaner "${cleaner}" \
+                                  ) \
+                        <(<"${_data}/utt2spk" awk '{ print "(" $2 "-" $1 ")" }') \
+                            >"${_scoredir}/ref.trn"
+
+                    # NOTE(kamo): Don't use cleaner for hyp
+                    paste \
+                        <(<"${_dir}/text"  \
+                              ${python} -m espnet2.bin.tokenize_text  \
+                                  -f 2- --input - --output - \
+                                  --token_type syl_atonal \
+                                  --non_linguistic_symbols "${nlsyms_txt}" \
+                                  --remove_non_linguistic_symbols true \
                                   ) \
                         <(<"${_data}/utt2spk" awk '{ print "(" $2 "-" $1 ")" }') \
                             >"${_scoredir}/hyp.trn"

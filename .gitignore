@@ -80,3 +80,5 @@ tools/speech_tools*
 tools/phonemizer*
 tools/py3mmseg
 tools/._*
+tools/anaconda
+tools/fairseq
