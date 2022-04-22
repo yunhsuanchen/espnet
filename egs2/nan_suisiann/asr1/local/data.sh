@@ -21,7 +21,8 @@ SECONDS=0
 
 # Data preparation related
 data_url=https://www.dropbox.com/s/rye2sd0wo718bj5/SuiSiann-0.2.1.tar
-remove_archive=false
+remove_archive=true
+speech_aug=true # enable speech augmentation
 download_opt=
 # tailo or cmn
 output_text=tailo
@@ -60,6 +61,12 @@ SUISIANN=$(cd ${SUISIANN}; pwd)
 
 echo local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
 local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
+
+if "$speech_aug"; then
+  log "Data Augmentation for speech"
+  local/speech_augmentation.py --pitch -1 -2 -3
+fi
+
 
 log "Data Preparation"
 train_dir=data/train
