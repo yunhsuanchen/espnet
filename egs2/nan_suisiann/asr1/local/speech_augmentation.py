@@ -16,6 +16,48 @@ def shift_pitch(data, sampling_rate, pitch_factor):
 def stretch(data, rate=1):
     return librosa.effects.time_stretch(data, rate=rate)
 
+def create_augment_wav_files(df, pitch_factors, data_dir, output_dir, spk_id):
+    augment_wav_output_dir = output_dir
+
+    new_list = []
+    for idx, row in df.iterrows():
+        wav_file_path = os.path.join(data_dir, row["音檔"])
+
+        utt_id = row["音檔"].split("/")[-1].split(".")[0]
+        row["講者"] = spk_id
+
+        # add original row to new dataframe
+        new_list.append(row)
+
+        #  Load the audio as a waveform `y`
+        #  Store the sampling rate as `sr`
+        y, sr = librosa.load(wav_file_path)
+
+        for n_step in pitch_factors:
+            # string to int
+            n_step = int(n_step)
+
+            aug_utt_id = f"{utt_id}_shift{abs(n_step)}"
+            aug_spk_id = f"{spk_id}_shift{abs(n_step)}"
+            out_wav_file_path = os.path.join(augment_wav_output_dir, aug_utt_id+".wav")
+
+            shifted_y = shift_pitch(y, sr, n_step)
+
+            # Write out audio as 24bit PCM WAV
+            sf.write(out_wav_file_path, shifted_y, sr, subtype='PCM_24')
+
+            # new row
+            new_row = row.copy()
+            new_row["音檔"] = os.path.join("augmented", aug_utt_id+".wav")
+            new_row["講者"] = aug_spk_id
+
+            # add row to new dataframe
+            new_list.append(new_row)
+    
+    # save to new csv file
+    new_df = pd.DataFrame(new_list)
+    return new_df
+
 def main(args):
     # downloads/0.2.1/augmented
     augment_wav_output_dir = os.path.join(args.data_dir, "augmented")

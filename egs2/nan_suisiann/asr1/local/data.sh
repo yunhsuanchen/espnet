@@ -62,10 +62,10 @@ SUISIANN=$(cd ${SUISIANN}; pwd)
 echo local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
 local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
 
-if "$speech_aug"; then
-  log "Data Augmentation for speech"
-  local/speech_augmentation.py --pitch -1 -2 -3
-fi
+# if "$speech_aug"; then
+#   log "Data Augmentation for speech"
+#   local/speech_augmentation.py --pitch -1 -2 -3
+# fi
 
 
 log "Data Preparation"
@@ -78,7 +78,7 @@ mkdir -p $dev_dir
 mkdir -p $test_dir
 
 # data prep for suisiann dataset
-python3 local/data_split_suisiann.py ${SUISIANN}/0.2.1 $output_text
+python3 local/data_split_suisiann.py ${SUISIANN}/0.2.1 $output_text $speech_aug
 
 # please manually download TAT-Vol2 to ${SUISIANN} directory
 # we're sorry we couldn't find a easy way to download the files via script

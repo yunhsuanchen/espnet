@@ -6,6 +6,8 @@ import os
 import pandas as pd
 import numpy as np
 
+from speech_augmentation import create_augment_wav_files
+
 train_size = 0.9
 dev_size = 0.05
 random_state = 11737
@@ -14,6 +16,7 @@ max_audio_length = 20
 
 data_dir = sys.argv[1]  # downloads/0.2.1
 output_text = sys.argv[2] # tailo or cmn
+speech_aug = bool(sys.argv[3])
 spk_id = "spk001"
 
 if output_text == "tailo":
@@ -25,12 +28,20 @@ else:
 
 df = pd.read_csv(os.path.join(data_dir, "SuiSiann.csv"))
 
-
 train_df, dev_df, test_df = \
               np.split(df.sample(frac=1, random_state=random_state), 
                        [int(train_size*len(df)), 
                        int((train_size+dev_size)*len(df))])
 
+if speech_aug:
+    pitch_factors = [-1, -2, -3]
+    aug_wav_dir = os.path.join(data_dir, "augmented")
+
+    if not os.path.isdir(aug_wav_dir):
+        print(f"Create directory:{aug_wav_dir}")
+        os.makedirs(aug_wav_dir)
+
+    aug_train_df = create_augment_wav_files(train_df, pitch_factors, data_dir, aug_wav_dir, spk_id=spk_id)
 
 print(
     f"# train: {len(train_df)}, # dev:{len(dev_df)}, # test:{len(test_df)}"
@@ -44,6 +55,10 @@ def create_files(df, directory):
         # skip audio files that are too long
         if row["長短"] > max_audio_length:
             continue
+
+        if speech_aug:
+            spk_id = row["講者"]
+
         wav_file_path = os.path.join(data_dir, row["音檔"])
         utt_id = row["音檔"].split("/")[-1].split(".")[0]
         # add speaker-ids prefixes of utt-ids
