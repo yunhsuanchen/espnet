@@ -22,7 +22,7 @@ SECONDS=0
 # Data preparation related
 data_url=https://www.dropbox.com/s/rye2sd0wo718bj5/SuiSiann-0.2.1.tar
 remove_archive=true
-speech_aug=true # enable speech augmentation
+speech_aug=false # enable speech augmentation
 download_opt=
 # tailo or cmn
 output_text=tailo
