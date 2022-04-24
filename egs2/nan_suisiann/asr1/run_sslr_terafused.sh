@@ -42,5 +42,6 @@ speed_perturb_factors="0.9 1.0 1.1"
     --feats_normalize uttmvn \
     --nj 2 \
     --gpu_inference true \
+    --local_data_opts "--speech_aug true" \
     --expdir exp-suisiann-tatvol2-aug \
     --stage 10
