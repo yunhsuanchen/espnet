@@ -23,6 +23,7 @@ SECONDS=0
 data_url=https://www.dropbox.com/s/rye2sd0wo718bj5/SuiSiann-0.2.1.tar
 remove_archive=true
 speech_aug=false # enable speech augmentation
+pseudo_label=false # read from mt output
 download_opt=
 # tailo or cmn
 output_text=tailo
@@ -71,8 +72,17 @@ mkdir -p $train_dir
 mkdir -p $dev_dir
 mkdir -p $test_dir
 
+# data splitting options
+data_split_opt=
+if "$speech_aug"; then
+  data_split_opt+="--speech_aug "
+fi
+if "$pseudo_label"; then
+  data_split_opt+="--pseudo_label "
+fi
+
 # data prep for suisiann dataset
-python3 local/data_split_suisiann.py ${SUISIANN}/0.2.1 $output_text $speech_aug
+python3 local/data_split_suisiann.py --data_dir ${SUISIANN}/0.2.1 --output_text $output_text ${data_split_opt}
 
 # please manually download TAT-Vol2 to ${SUISIANN} directory
 # we're sorry we couldn't find a easy way to download the files via script
