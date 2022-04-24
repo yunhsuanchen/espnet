@@ -72,23 +72,27 @@ mkdir -p $train_dir
 mkdir -p $dev_dir
 mkdir -p $test_dir
 
-# data splitting options
+# data splitting & tat data prep options
 data_split_opt=
+tat_prep_opt=
 if "$speech_aug"; then
   data_split_opt+="--speech_aug "
 fi
 if "$pseudo_label"; then
   data_split_opt+="--pseudo_label "
+  tat_prep_opt+="--pseudo_label "
 fi
 
 # data prep for suisiann dataset
+echo python3 local/data_split_suisiann.py --data_dir ${SUISIANN}/0.2.1 --output_text $output_text ${data_split_opt}
 python3 local/data_split_suisiann.py --data_dir ${SUISIANN}/0.2.1 --output_text $output_text ${data_split_opt}
 
 # please manually download TAT-Vol2 to ${SUISIANN} directory
 # we're sorry we couldn't find a easy way to download the files via script
 if [ -d "${SUISIANN}/TAT-Vol2" ]; then
     # data prep for TAT-vol2-samples
-    python3 local/data_prep_tat.py ${SUISIANN}/TAT-Vol2 $output_text
+    echo python3 local/data_prep_tat.py --data_dir ${SUISIANN}/TAT-Vol2 --output_text $output_text ${tat_prep_opt}
+    python3 local/data_prep_tat.py --data_dir ${SUISIANN}/TAT-Vol2 --output_text $output_text ${tat_prep_opt}
 
     # resort the files in train
     python3 local/sort_text_file.py $train_dir
