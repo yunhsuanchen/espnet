@@ -33,13 +33,15 @@ def create_files(args, df, directory, train=False):
         transcription = transcription.replace('"', '""')
         tai_han = row["漢字"]
 
-        text_lines.append(f"{utt_id} {transcription}\n")
+        # skipping empty sentences
+        if transcription:
+            text_lines.append(f"{utt_id} {transcription}\n")
 
-        scp_lines.append(f"{utt_id} {wav_file_path}\n")
+            scp_lines.append(f"{utt_id} {wav_file_path}\n")
 
-        utt2spk_lines.append(f"{utt_id} {spk_id}\n")
+            utt2spk_lines.append(f"{utt_id} {spk_id}\n")
 
-        human_annotation_lines.append(f"{utt_id},{wav_file_path},\"{transcription}\",\"{tai_han}\",\n")
+            human_annotation_lines.append(f"{utt_id},{wav_file_path},\"{transcription}\",\"{tai_han}\",\n")
 
     # sort
     text_lines.sort()
@@ -59,6 +61,21 @@ def create_files(args, df, directory, train=False):
     with open(f"{directory}/human_annotation.csv", "w+") as f:
         f.writelines(human_annotation_lines)
 
+def combine_indices_to_same_line(pred_filepath, index_filepath, gold_length):
+    with open(pred_filepath) as f:
+        pred_lines = f.readlines()
+    with open(index_filepath) as f:
+        index_lines = f.readlines()
+
+    outputs = [""] * gold_length
+    for pred_line, idx in zip(pred_lines, index_lines):
+        idx = int(idx)
+
+        outputs[idx] += pred_line.strip()
+
+    return outputs
+        
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', default='downloads/0.2.1',
@@ -68,8 +85,11 @@ if __name__ == "__main__":
                         help='ASR outout script')
     parser.add_argument('--speech_aug', action='store_true',
                         help="add data augmentation: pitch shift")
+
+    # pseudo label related
     parser.add_argument('--pseudo_label', action='store_true',
-                        help="read from MT output as label")                   
+                        help="read from MT output as label")
+
 
     args = parser.parse_args()
 
@@ -97,6 +117,21 @@ if __name__ == "__main__":
         raise NotImplementedError
 
     df = pd.read_csv(os.path.join(data_dir, "SuiSiann.csv"))
+
+    if args.pseudo_label:
+        print("Read pseudo labels from MT output")
+        MT_dir = "/home/ubuntu/Taiwanese_ASR_MT/MT"
+        suisiann_pred_filepath = os.path.join(MT_dir, "checkpoints/icorpus_nan_spm8000/nan_cmn/suisiann_b5.pred")
+        suisiann_index_filepath = os.path.join(MT_dir, "data/suisiann_raw/nan_cmn/all.orig.nan.id")
+
+        pseudo_lines = combine_indices_to_same_line(suisiann_pred_filepath, suisiann_index_filepath, len(df))
+
+        # add pseudo_lines to dataframe
+        assert len(df) == len(pseudo_lines), f"length of SuiSiann({len(df)}) doesn't match MT output({len(pseudo_lines)})"
+        df["pseudo_cmn"] = pseudo_lines
+
+        # changing the text column name
+        text_column_name = "pseudo_cmn"
 
     train_df, dev_df, test_df = \
                 np.split(df.sample(frac=1, random_state=random_state), 
