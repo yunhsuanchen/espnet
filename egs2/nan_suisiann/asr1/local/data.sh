@@ -62,12 +62,6 @@ SUISIANN=$(cd ${SUISIANN}; pwd)
 echo local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
 local/data_download.sh ${download_opt} "${SUISIANN}" "${data_url}"
 
-# if "$speech_aug"; then
-#   log "Data Augmentation for speech"
-#   local/speech_augmentation.py --pitch -1 -2 -3
-# fi
-
-
 log "Data Preparation"
 train_dir=data/train
 dev_dir=data/dev

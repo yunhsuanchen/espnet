@@ -54,7 +54,6 @@ def create_augment_wav_files(df, pitch_factors, data_dir, output_dir, spk_id):
             # add row to new dataframe
             new_list.append(new_row)
     
-    # save to new csv file
     new_df = pd.DataFrame(new_list)
     return new_df
 

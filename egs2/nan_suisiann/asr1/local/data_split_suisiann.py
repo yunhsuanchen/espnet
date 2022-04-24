@@ -34,20 +34,32 @@ train_df, dev_df, test_df = \
                        int((train_size+dev_size)*len(df))])
 
 if speech_aug:
-    pitch_factors = [-1, -2, -3]
-    aug_wav_dir = os.path.join(data_dir, "augmented")
+    aug_file = os.path.join(data_dir, "SuiSiann_aug.csv")
 
-    if not os.path.isdir(aug_wav_dir):
-        print(f"Create directory:{aug_wav_dir}")
-        os.makedirs(aug_wav_dir)
+    if os.path.exists(aug_file):
+        print("data augmentation files already exist, reading from csv file:", aug_file)
+        aug_train_df = pd.read_csv(aug_file)
 
-    aug_train_df = create_augment_wav_files(train_df, pitch_factors, data_dir, aug_wav_dir, spk_id=spk_id)
+    else:
+        pitch_factors = [-1, -2, -3]
+        aug_wav_dir = os.path.join(data_dir, "augmented")
+
+        if not os.path.isdir(aug_wav_dir):
+            print(f"Create directory:{aug_wav_dir}")
+            os.makedirs(aug_wav_dir)
+
+        aug_train_df = create_augment_wav_files(train_df, pitch_factors, data_dir, aug_wav_dir, spk_id=spk_id)
+
+        # save df to csv
+        aug_train_df.to_csv(aug_file, index=False)
+        print(f"Finished data augmentation, augmented wav files saved at {aug_wav_dir}")
+        print("Data augmentation csv saved at", aug_file)
 
 print(
     f"# train: {len(train_df)}, # dev:{len(dev_df)}, # test:{len(test_df)}"
 )
 
-def create_files(df, directory):
+def create_files(df, directory, train=False):
     text_lines, scp_lines, utt2spk_lines = [], [], []
     human_annotation_lines = []
 
@@ -56,8 +68,12 @@ def create_files(df, directory):
         if row["長短"] > max_audio_length:
             continue
 
-        if speech_aug:
+        if train and speech_aug:
             spk_id = row["講者"]
+        else:
+            # suisiann only has one speaker
+            # we are not augmenting for dev and test set
+            spk_id = "spk001"
 
         wav_file_path = os.path.join(data_dir, row["音檔"])
         utt_id = row["音檔"].split("/")[-1].split(".")[0]
@@ -95,7 +111,10 @@ def create_files(df, directory):
 
 
 print("Creating files for train...", end="")
-create_files(train_df, "data/train")
+if speech_aug:
+    create_files(aug_train_df, "data/train", train=True)
+else:
+    create_files(train_df, "data/train", train=True)
 print("Done.")
 
 print("Creating files for dev...", end="")
