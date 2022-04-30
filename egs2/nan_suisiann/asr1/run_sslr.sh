@@ -4,22 +4,17 @@
 set -e
 set -u
 set -o pipefail
-
 train_set=train
 valid_set=dev
 test_sets="dev test"
-
-asr_config=conf/train_asr_sslr_terafused.yaml
+asr_config=conf/train_asr_sslr_xlsrfused.yaml
 inference_config=conf/decode_asr.yaml
-
 lm_config=conf/train_lm.yaml
 use_lm=false
 use_wordlm=false
-
 # speed perturbation related
 # (train_set will be "${train_set}_sp" if speed_perturb_factors is specified)
 speed_perturb_factors="0.9 1.0 1.1"
-
 ./asr.sh                                               \
     --lang nan                                          \
     --audio_format wav                                 \
@@ -42,6 +37,5 @@ speed_perturb_factors="0.9 1.0 1.1"
     --feats_normalize uttmvn \
     --nj 2 \
     --gpu_inference true \
-    --local_data_opts "--speech_aug true --pseudo_label true" \
-    --expdir exp-suisiann-tatvol2-pseudo \
+    --expdir exp-suisiann-tatvol2-sslr \
     --stage 12

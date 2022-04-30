@@ -43,5 +43,7 @@ speed_perturb_factors="0.9 1.0 1.1"
     --nj 2 \
     --gpu_inference true \
     --local_data_opts "--speech_aug true --pseudo_label true" \
-    --expdir exp-suisiann-tatvol2-pseudo \
-    --stage 12
+    --expdir exp-suisiann-tatvol2-pseudo-preinit \
+    --stage 2 \
+    --pretrained_model exp-suisiann-tatvol2-aug/asr_train_asr_sslr_terafused_raw_nan_char_sp/valid.acc.ave_5best.pth:::decoder \
+    --ignore_init_mismatch true
